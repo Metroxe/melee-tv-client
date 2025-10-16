@@ -1,49 +1,56 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import "./App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [path, setPath] = useState("");
+  const [status, setStatus] = useState("");
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
+  useEffect(() => {
+    async function init() {
+      const current = await invoke<string | null>("get_watched_path");
+      if (current && current.length > 0) {
+        setPath(current);
+        setStatus("Watching folder");
+      } else {
+        const def = await invoke<string>("get_default_watched_path");
+        setPath(def);
+        try {
+          await invoke("set_watched_path", { path: def });
+          setStatus("Watching default folder");
+        } catch (e) {
+          setStatus("Default folder not found. Please pick a folder.");
+        }
+      }
+    }
+    init();
+  }, []);
+
+  async function chooseFolder() {
+    const dir = await open({ directory: true, multiple: false });
+    if (dir && typeof dir === "string") {
+      try {
+        await invoke("set_watched_path", { path: dir });
+        setPath(dir);
+        setStatus("Watching folder");
+      } catch (e) {
+        setStatus("Failed to watch folder");
+      }
+    }
   }
 
   return (
     <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <h1>Melee TV Uploader</h1>
+      <div className="row" style={{ gap: 12, alignItems: "center" }}>
+        <button onClick={chooseFolder}>Choose folder…</button>
+        <span style={{ fontSize: 12, opacity: 0.8 }}>{path}</span>
       </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
+      <p style={{ marginTop: 8 }}>{status}</p>
+      <p style={{ marginTop: 16, fontSize: 12, opacity: 0.7 }}>
+        New .slp files in this folder will be uploaded automatically.
+      </p>
     </main>
   );
 }
