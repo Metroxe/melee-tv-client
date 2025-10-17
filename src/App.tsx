@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
+import { check } from "@tauri-apps/plugin-updater";
 import "./App.css";
 
 function App() {
@@ -9,6 +10,16 @@ function App() {
 
   useEffect(() => {
     async function init() {
+      try {
+        const update = await check();
+        if (update?.available) {
+          setStatus("Update available. Downloading…");
+          await update.downloadAndInstall();
+          setStatus("Update installed. Restart the app to finish.");
+        }
+      } catch (_) {
+        // ignore updater errors silently
+      }
       const current = await invoke<string | null>("get_watched_path");
       if (current && current.length > 0) {
         setPath(current);

@@ -25,6 +25,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -32,5 +33,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/Metroxe/melee-tv-client/releases/latest/download/update.json"
+      ],
+      "pubkey": "RWTNPpbmiNqGr40OvqEHp8DLjzqlVQ8nmgYsy64fLl1gtEskC/8aDJ/N"
+    }
   }
 }
