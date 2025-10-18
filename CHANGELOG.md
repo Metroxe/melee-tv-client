@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Metroxe/melee-tv-client/compare/v1.0.2...v1.1.0) (2025-10-18)
+
+
+### Features
+
+* Implement autostart functionality in Tauri app ([aa2e59f](https://github.com/Metroxe/melee-tv-client/commit/aa2e59f9c7be8e2cb3077a4dd2ad581fb04a6d94))
+
 ## [1.0.2](https://github.com/Metroxe/melee-tv-client/compare/v1.0.1...v1.0.2) (2025-10-18)
 
 
