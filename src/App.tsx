@@ -2,11 +2,17 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { check } from "@tauri-apps/plugin-updater";
+import {
+  enable as enableAutostart,
+  disable as disableAutostart,
+  isEnabled as isAutostartEnabled,
+} from "@tauri-apps/plugin-autostart";
 import "./App.css";
 
 function App() {
   const [path, setPath] = useState("");
   const [status, setStatus] = useState("");
+  const [autostart, setAutostart] = useState<boolean | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -34,6 +40,24 @@ function App() {
           setStatus("Default folder not found. Please pick a folder.");
         }
       }
+      try {
+        const on = await isAutostartEnabled();
+        setAutostart(on);
+        try {
+          const initialized = localStorage.getItem("autostartInitialized");
+          if (!initialized && !on) {
+            await enableAutostart();
+            setAutostart(true);
+          }
+          if (!initialized) {
+            localStorage.setItem("autostartInitialized", "1");
+          }
+        } catch (_) {
+          // ignore
+        }
+      } catch (_) {
+        setAutostart(false);
+      }
     }
     init();
   }, []);
@@ -51,12 +75,41 @@ function App() {
     }
   }
 
+  async function toggleAutostart() {
+    if (autostart === null) return;
+    try {
+      if (autostart) {
+        await disableAutostart();
+        setAutostart(false);
+      } else {
+        await enableAutostart();
+        setAutostart(true);
+      }
+    } catch (_) {
+      // ignore
+    }
+  }
+
   return (
     <main className="container">
       <h1>Melee TV Uploader</h1>
       <div className="row" style={{ gap: 12, alignItems: "center" }}>
         <button onClick={chooseFolder}>Choose folder…</button>
         <span style={{ fontSize: 12, opacity: 0.8 }}>{path}</span>
+      </div>
+      <div
+        className="row"
+        style={{ gap: 12, alignItems: "center", marginTop: 12 }}
+      >
+        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={!!autostart}
+            onChange={toggleAutostart}
+            disabled={autostart === null}
+          />
+          Start at login
+        </label>
       </div>
       <p style={{ marginTop: 8 }}>{status}</p>
       <p style={{ marginTop: 16, fontSize: 12, opacity: 0.7 }}>
