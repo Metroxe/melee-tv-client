@@ -1,9 +1,20 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use std::{collections::HashSet, fs, path::{Path, PathBuf}, sync::{Arc, Mutex}, thread, time::Duration};
+use std::{collections::HashSet, env, fs, path::{Path, PathBuf}, sync::{Arc, Mutex}, thread, time::Duration};
 
 use notify::{Config as NotifyConfig, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 
-const DEFAULT_SERVER_URL: &str = "http://localhost:3000";
+fn resolve_server_url() -> String {
+    if let Ok(val) = env::var("MELEE_TV_UPLOAD_URL") {
+        if !val.is_empty() {
+            return val;
+        }
+    }
+    if cfg!(debug_assertions) {
+        "http://localhost:3000".to_string()
+    } else {
+        "https://meleetv.boilerroom.tech".to_string()
+    }
+}
 
 #[derive(Default)]
 struct WatchState {
@@ -70,7 +81,8 @@ fn upload_file(file_path: &Path) {
             Ok(f) => f,
             Err(_) => return,
         };
-        let url = format!("{}/upload", DEFAULT_SERVER_URL);
+        let base = resolve_server_url();
+        let url = format!("{}/upload", base);
         let _ = client.post(url).multipart(form).send();
     });
 }

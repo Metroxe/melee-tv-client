@@ -1,0 +1,58 @@
+name: Release (Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Semver bump type (patch, minor, major)"
+        required: false
+        default: patch
+
+permissions:
+  contents: write
+
+jobs:
+  release-windows:
+    runs-on: windows-latest
+    env:
+      TAURI_CONF: src-tauri/tauri.conf.json
+      CARGO_TOML: src-tauri/Cargo.toml
+      RELEASE_TYPE: ${{ github.event.inputs.release_type || 'patch' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run release
+
+      - name: Sync versions to Tauri files
+        run: npm run version:sync
+
+      - name: Build and release (Windows)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # Override upload endpoint for release builds
+          MELEE_TV_UPLOAD_URL: "https://meleetv.boilerroom.tech"
+        with:
+          projectPath: .
+          # semantic-release already created the GitHub Release; this step will attach artifacts
+          tagName: ${{ github.ref_name }}
+          releaseName: ${{ github.ref_name }}
+          releaseBody: "Automated Windows release via semantic-release"
+          tauriScript: npm run tauri
