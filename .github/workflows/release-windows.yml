@@ -36,14 +36,19 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Semantic Release
+        id: semantic_release
+        uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run release
+        with:
+          branch: ${{ github.ref_name }}
 
       - name: Sync versions to Tauri files
+        if: steps.semantic_release.outputs.new_release_published == 'true'
         run: npm run version:sync
 
       - name: Build and release (Windows)
+        if: steps.semantic_release.outputs.new_release_published == 'true'
         uses: tauri-apps/tauri-action@v0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -54,8 +59,8 @@ jobs:
           MELEE_TV_UPLOAD_URL: "https://meleetv.boilerroom.tech"
         with:
           projectPath: .
-          # semantic-release already created the GitHub Release; this step will attach artifacts
-          tagName: ${{ github.ref_name }}
-          releaseName: ${{ github.ref_name }}
+          # Attach artifacts to the semantic-release Git tag (e.g., v1.1.0)
+          tagName: ${{ steps.semantic_release.outputs.new_release_git_tag }}
+          releaseName: ${{ steps.semantic_release.outputs.new_release_git_tag }}
           releaseBody: "Automated Windows release via semantic-release"
           tauriScript: npm run tauri
