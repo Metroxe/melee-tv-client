@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Metroxe/melee-tv-client/compare/v1.1.0...v1.1.1) (2025-10-18)
+
+
+### Bug Fixes
+
+* Update Windows release workflow to integrate semantic-release ([ffdb878](https://github.com/Metroxe/melee-tv-client/commit/ffdb878d41ad5b1f81cf046199e577cd524ff8f4))
+
 # [1.1.0](https://github.com/Metroxe/melee-tv-client/compare/v1.0.2...v1.1.0) (2025-10-18)
 
 
