@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/Metroxe/melee-tv-client/compare/v1.0.1...v1.0.2) (2025-10-18)
+
+
+### Bug Fixes
+
+* Update version synchronization script extension in package.json to .cjs for CommonJS compatibility ([1db1d99](https://github.com/Metroxe/melee-tv-client/commit/1db1d997f05b5cbe60d71352517b97f053ee4c46))
+
 ## [1.0.1](https://github.com/Metroxe/melee-tv-client/compare/v1.0.0...v1.0.1) (2025-10-18)
 
 
